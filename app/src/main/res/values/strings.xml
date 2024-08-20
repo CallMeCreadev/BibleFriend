@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Bible Friend</string>
+    <string-array name="font_size_array">
+        <item>Small</item>
+        <item>Medium</item>
+        <item>Large</item>
+    </string-array>
+    <string name="title_home">Home</string>
+    <string name="title_favorites">Favorites</string>
+    <string name="title_bible">Bible King James: Full Text</string>
+    <string name="title_question"> Search Tools</string>
+    <string name="button_ai_search"> AI Search</string>
+    <string name="button_exact_search">Match Search</string>
+</resources>

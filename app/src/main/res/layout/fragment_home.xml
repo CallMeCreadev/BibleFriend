@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.home.HomeFragment">
+
+    <!-- ScrollView to make the text scrollable if it exceeds the screen height -->
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:paddingBottom="20dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/font_size_layout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- TextView for the home text -->
+        <TextView
+            android:id="@+id/text_home"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            tools:text="Hello! I am Bible Friend\nThis app uses the King James Bible and can function offline\nEverything is built into the app itself\nA personal database is contained within the app on your phone\nThis database saves your favorites list, and bookmarks your Bible\nThe custom database allows you to search the bible for key phrases\nYou can copy text from your bible and use the search function to add it to your favorites\nIncluded is custom AI model that finds verses based on your prompts\nThere are no servers or API calls meaning your data is 100% private" />
+    </ScrollView>
+
+    <!-- LinearLayout for font size selection at the bottom -->
+    <LinearLayout
+        android:id="@+id/font_size_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="120dp"
+        android:layout_marginTop="8dp">
+
+        <!-- Label for font size -->
+        <TextView
+            android:id="@+id/font_size_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Font Size"
+            android:textSize="24sp"
+            android:layout_marginEnd="8dp" />
+
+        <!-- Spinner for font size selection -->
+        <Spinner
+            android:id="@+id/font_size_spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/font_size_array" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
