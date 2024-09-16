@@ -6,5 +6,6 @@ import androidx.room.Entity
 data class FavoriteVerse(
     val chapter: String,
     val verse: String,
-    val text: String
+    val text: String,
+    val addedAt: Long // Timestamp in milliseconds since epoch
 )

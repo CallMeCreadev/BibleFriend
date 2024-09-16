@@ -213,7 +213,7 @@ class QuestionFragment : Fragment() {
 
         GlobalScope.launch(Dispatchers.IO) {
             for (verse in verses) {
-                val favoriteVerse = FavoriteVerse(verse.chapter, verse.verseNumber, verse.text)
+                val favoriteVerse = FavoriteVerse(verse.chapter, verse.verseNumber, verse.text, addedAt = System.currentTimeMillis())
                 favoriteVerseDao.insert(favoriteVerse)
             }
         }

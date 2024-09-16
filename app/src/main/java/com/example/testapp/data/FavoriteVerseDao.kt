@@ -13,7 +13,7 @@ interface FavoriteVerseDao {
     @Query("SELECT * FROM favorite_verses WHERE chapter = :chapter AND verse = :verse LIMIT 1")
     fun findByChapterAndVerse(chapter: String, verse: String): FavoriteVerse?
 
-    @Query("SELECT * FROM favorite_verses")
+    @Query("SELECT * FROM favorite_verses ORDER BY addedAt DESC")
     fun getAllFavorites(): List<FavoriteVerse>
 
     @Query("DELETE FROM favorite_verses WHERE chapter = :chapter AND verse = :verse")
