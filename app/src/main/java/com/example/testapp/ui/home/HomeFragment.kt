@@ -51,6 +51,7 @@ class HomeFragment : Fragment() {
             You can copy text from your bible and use the search function to add it to your favorites
             Included is custom AI model that finds verses based on your prompts
             There are no servers or API calls meaning your data is 100% private
+            App will auto-close once after first Install/Opening to ensure tables & AI are loaded properly.
         """.trimIndent()
 
         val fontSizeSpinner: Spinner = binding.fontSizeSpinner

@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,6 +20,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
 
 class QuestionFragment : Fragment() {
 
@@ -41,23 +46,48 @@ class QuestionFragment : Fragment() {
         val searchButton: Button = binding.searchButton
         val versesRecyclerView: RecyclerView = binding.versesRecyclerView
         val addToFavoritesButton: Button = binding.addToFavoritesButton
+        val progressBar: ProgressBar = binding.progressBar
 
         versesRecyclerView.layoutManager = LinearLayoutManager(context)
 
         fetchButton.setOnClickListener {
             val prompt = promptEditText.text.toString()
-            val verses = fetchMatchingVerses(requireContext(), prompt)
-            val adapter = VerseAdapter(verses, ::onVerseChecked, requireContext())
-            versesRecyclerView.adapter = adapter
-            versesRecyclerView.scrollToPosition(0)
+            progressBar.visibility = View.VISIBLE
+
+            lifecycleScope.launch {
+                try {
+                    val verses = withContext(Dispatchers.IO) {
+                        fetchMatchingVerses(requireContext(), prompt)
+                    }
+                    val adapter = VerseAdapter(verses, ::onVerseChecked, requireContext())
+                    versesRecyclerView.adapter = adapter
+                    versesRecyclerView.scrollToPosition(0)
+                } catch (e: Exception) {
+                    // Handle exceptions
+                } finally {
+                    progressBar.visibility = View.GONE
+                }
+            }
         }
 
         searchButton.setOnClickListener {
             val prompt = promptEditText.text.toString()
-            val verses = searchVerses(requireContext(), prompt)
-            val adapter = VerseAdapter(verses, ::onVerseChecked, requireContext())
-            versesRecyclerView.adapter = adapter
-            versesRecyclerView.scrollToPosition(0)
+            progressBar.visibility = View.VISIBLE
+
+            lifecycleScope.launch {
+                try {
+                    val verses = withContext(Dispatchers.IO) {
+                        searchVerses(requireContext(), prompt)
+                    }
+                    val adapter = VerseAdapter(verses, ::onVerseChecked, requireContext())
+                    versesRecyclerView.adapter = adapter
+                    versesRecyclerView.scrollToPosition(0)
+                } catch (e: Exception) {
+                    // Handle exceptions
+                } finally {
+                    progressBar.visibility = View.GONE
+                }
+            }
         }
 
         addToFavoritesButton.setOnClickListener {
