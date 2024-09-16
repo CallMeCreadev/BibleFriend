@@ -23,6 +23,7 @@ import kotlin.math.ceil
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.PriorityQueue
 
 
 class QuestionFragment : Fragment() {
@@ -113,17 +114,27 @@ class QuestionFragment : Fragment() {
         binding.addToFavoritesButton.visibility = if (selectedVerses.isNotEmpty()) View.VISIBLE else View.GONE
     }
 
-    private fun fetchMatchingVerses(context: Context, prompt: String, topN: Int = 6, selectN: Int = 6): List<Verse> {
+    private fun fetchMatchingVerses(
+        context: Context,
+        prompt: String,
+        topN: Int = 6,
+        selectN: Int = 6
+    ): List<Verse> {
         // Trim the related words set to the first 10 words
-        val relatedWordsSet = HashSet(prompt.lowercase().split(" ").take(10))
+        val relatedWordsSet = prompt.lowercase().split(" ").take(15).toSet()
 
         val dbName = "bible.db"
         val dbPath = context.getDatabasePath(dbName).absolutePath
         val db = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READONLY)
 
-        val cursor = db.rawQuery("SELECT bible_book, Verse_Number, Verse, spacy_gensim_keys FROM Bible", null)
+        val cursor = db.rawQuery(
+            "SELECT bible_book, Verse_Number, Verse, spacy_gensim_keys FROM Bible",
+            null
+        )
 
-        val matchingVerses = mutableListOf<Quadruple<String, String, String, Double>>()
+        val matchingVerses = PriorityQueue<Quadruple<String, String, String, Double>>(topN + 1) { a, b ->
+            a.fourth.compareTo(b.fourth)
+        }
 
         if (cursor.moveToFirst()) {
             do {
@@ -133,52 +144,59 @@ class QuestionFragment : Fragment() {
                 val spacyGensimKeys = cursor.getString(3)
 
                 if (!spacyGensimKeys.isNullOrEmpty()) {
-                    val verseRelatedWordsSet = HashSet(spacyGensimKeys.lowercase().split(", "))
+                    val verseRelatedWordsSet = spacyGensimKeys.lowercase().split(", ").toSet()
                     val verseWordsList = verse.lowercase().split(" ")
-                    val combinedWordsSet = verseRelatedWordsSet.union(verseWordsList)
+                    val verseWordsSet = verseWordsList.toSet()
+
+                    val combinedWordsSet = verseRelatedWordsSet.union(verseWordsSet)
                     val commonWordsWithSpacy = relatedWordsSet.intersect(verseRelatedWordsSet).size
-                    val commonWordsWithVerse = relatedWordsSet.intersect(verseWordsList.toSet()).size
+                    val commonWordsWithVerse = relatedWordsSet.intersect(verseWordsSet).size
+
                     var totalCommonWords = commonWordsWithSpacy + (4 * commonWordsWithVerse)
                     val totalWords = combinedWordsSet.size
 
                     var bonus = 0
 
-                    // Perform the computationally expensive bonus check only if commonWordsWithVerse >= 3
+                    // Optimized bonus calculation
                     if (commonWordsWithVerse >= 3) {
-                        // Calculate bonus for lined-up pairs of words with an index difference of 1
                         val relatedWordsList = relatedWordsSet.toList()
 
-                        for (i in 0 until relatedWordsList.size - 1) {
-                            for (j in 0 until verseWordsList.size - 1) {
-                                if (relatedWordsList[i] == verseWordsList[j] &&
-                                    relatedWordsList[i + 1] == verseWordsList[j + 1]) {
-                                    bonus += 10 // or any other bonus value you deem appropriate
-                                }
-                                // Check for an index difference of 2
-                                if (i < relatedWordsList.size - 2 && j < verseWordsList.size - 2 &&
-                                    relatedWordsList[i] == verseWordsList[j] &&
-                                    relatedWordsList[i + 2] == verseWordsList[j + 2]) {
-                                    bonus += 5  // or any other bonus value you deem appropriate
-                                }
-                            }
-                        }
+                        // Bigrams
+                        val relatedBigrams = relatedWordsList.windowed(2)
+                            .map { it[0] to it[1] }
+                            .toSet()
+                        val verseBigrams = verseWordsList.windowed(2)
+                            .map { it[0] to it[1] }
+                            .toSet()
+                        bonus += relatedBigrams.intersect(verseBigrams).size * 10
+
+                        // Skip-grams with index difference of 2
+                        val relatedSkipGrams = relatedWordsList.windowed(3)
+                            .map { it[0] to it[2] }
+                            .toSet()
+                        val verseSkipGrams = verseWordsList.windowed(3)
+                            .map { it[0] to it[2] }
+                            .toSet()
+                        bonus += relatedSkipGrams.intersect(verseSkipGrams).size * 5
                     }
 
                     totalCommonWords += bonus
 
                     val denominator = ceil(totalWords.toDouble() / 50.0)
-                    val score = totalCommonWords.toDouble() / denominator
+                    val score = totalCommonWords / denominator
 
                     matchingVerses.add(Quadruple(chapter, verseNumber, verse, score))
+                    if (matchingVerses.size > topN) {
+                        matchingVerses.poll()
+                    }
                 }
             } while (cursor.moveToNext())
         }
         cursor.close()
         db.close()
 
-        matchingVerses.sortByDescending { it.fourth }
-
-        val topNVerses = matchingVerses.take(topN)
+        // Get the top N verses and shuffle
+        val topNVerses = matchingVerses.toList().sortedByDescending { it.fourth }
 
         return topNVerses.shuffled().take(selectN).map { Triple(it.first, it.second, it.third) }
             .map { Verse(it.first, it.second, it.third) }
