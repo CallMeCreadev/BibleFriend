@@ -120,8 +120,8 @@ class QuestionFragment : Fragment() {
         topN: Int = 6,
         selectN: Int = 6
     ): List<Verse> {
-        // Trim the related words set to the first 10 words
-        val relatedWordsSet = prompt.lowercase().split(" ").take(15).toSet()
+        // Trim the related words set to the first 20 words
+        val relatedWordsSet = prompt.lowercase().split(" ").take(20).toSet()
 
         val dbName = "bible.db"
         val dbPath = context.getDatabasePath(dbName).absolutePath
